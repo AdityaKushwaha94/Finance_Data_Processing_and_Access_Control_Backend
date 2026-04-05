@@ -79,4 +79,12 @@ export class FinancialRecordService {
       throw new ApiError(404, "Financial record not found");
     }
   }
+
+  public async restoreRecord(id: string): Promise<void> {
+    const wasRestored = await this.recordRepository.restoreById(id);
+
+    if (!wasRestored) {
+      throw new ApiError(404, "Financial record not found or not deleted");
+    }
+  }
 }

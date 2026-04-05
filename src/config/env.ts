@@ -15,6 +15,8 @@ const envSchema = z.object({
     .min(16)
     .default("from env file,  i am going to overwrite this in the production system if required"),
   JWT_EXPIRES_IN: z.string().default("1d"),
+  RATE_LIMIT_WINDOW_MINUTES: z.coerce.number().int().min(1).default(15),
+  RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().min(1).default(200),
   SEED_ADMIN_EMAIL: z.string().email().default("admin@finance.local"),
   SEED_ADMIN_PASSWORD: z.string().min(8).default("Admin@12345")
 });

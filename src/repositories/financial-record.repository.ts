@@ -30,7 +30,10 @@ export class FinancialRecordRepository implements IFinancialRecordRepository {
   }
 
   public async findById(id: string): Promise<FinancialRecordDocument | null> {
-    return FinancialRecordModel.findById(id);
+    return FinancialRecordModel.findOne({
+      _id: id,
+      isDeleted: false
+    });
   }
 
   public async findAll(
@@ -67,15 +70,55 @@ export class FinancialRecordRepository implements IFinancialRecordRepository {
       notes?: string;
     }>
   ): Promise<FinancialRecordDocument | null> {
-    return FinancialRecordModel.findByIdAndUpdate(id, updates, {
+    return FinancialRecordModel.findOneAndUpdate(
+      {
+        _id: id,
+        isDeleted: false
+      },
+      updates,
+      {
       new: true,
       runValidators: true
-    });
+      }
+    );
   }
 
   public async deleteById(id: string): Promise<boolean> {
-    const deleted = await FinancialRecordModel.findByIdAndDelete(id);
+    const deleted = await FinancialRecordModel.findOneAndUpdate(
+      {
+        _id: id,
+        isDeleted: false
+      },
+      {
+        isDeleted: true,
+        deletedAt: new Date()
+      },
+      {
+        new: true
+      }
+    );
+
     return Boolean(deleted);
+  }
+
+  public async restoreById(id: string): Promise<boolean> {
+    const restored = await FinancialRecordModel.findOneAndUpdate(
+      {
+        _id: id,
+        isDeleted: true
+      },
+      {
+        isDeleted: false,
+        $unset: {
+          deletedAt: 1
+        }
+      },
+      {
+        new: true
+      }
+    );
+
+    return Boolean(restored);
   }
 
   public async getSummary(
@@ -217,7 +260,9 @@ export class FinancialRecordRepository implements IFinancialRecordRepository {
   private buildMatchQuery(
     filters: FinancialRecordFilters
   ): MatchQuery {
-    const match: MatchQuery = {};
+    const match: MatchQuery = {
+      isDeleted: false
+    };
 
     if (filters.type) {
       match.type = filters.type;
@@ -225,6 +270,27 @@ export class FinancialRecordRepository implements IFinancialRecordRepository {
 
     if (filters.category) {
       match.category = filters.category;
+    }
+
+    if (filters.search) {
+      const escapedSearch = this.escapeRegex(filters.search.trim());
+
+      if (escapedSearch.length > 0) {
+        match.$or = [
+          {
+            category: {
+              $regex: escapedSearch,
+              $options: "i"
+            }
+          },
+          {
+            notes: {
+              $regex: escapedSearch,
+              $options: "i"
+            }
+          }
+        ];
+      }
     }
 
     if (filters.startDate || filters.endDate) {
@@ -243,13 +309,33 @@ export class FinancialRecordRepository implements IFinancialRecordRepository {
 
     return match;
   }
+
+  private escapeRegex(input: string): string {
+    return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
 }
 
 interface MatchQuery {
+  _id?: string;
+  isDeleted: boolean;
   type?: IFinancialRecord["type"];
   category?: string;
+  notes?: {
+    $regex: string;
+    $options: "i";
+  };
   date?: {
     $gte?: Date;
     $lte?: Date;
   };
+  $or?: Array<{
+    category?: {
+      $regex: string;
+      $options: "i";
+    };
+    notes?: {
+      $regex: string;
+      $options: "i";
+    };
+  }>;
 }

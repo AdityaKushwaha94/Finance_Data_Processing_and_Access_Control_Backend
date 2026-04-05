@@ -36,6 +36,7 @@ export const listFinancialRecordsSchema = {
     .object({
       type: z.enum(RECORD_TYPES).optional(),
       category: z.string().trim().min(2).max(100).optional(),
+      search: z.string().trim().min(1).max(100).optional(),
       startDate: z.coerce.date().optional(),
       endDate: z.coerce.date().optional(),
       page: z.coerce.number().int().min(1).default(1),

@@ -58,5 +58,12 @@ export const createFinancialRecordRoutes = ({
     asyncHandler(controller.deleteRecord)
   );
 
+  router.patch(
+    "/:id/restore",
+    authorize("admin"),
+    validate(recordIdParamSchema),
+    asyncHandler(controller.restoreRecord)
+  );
+
   return router;
 };
