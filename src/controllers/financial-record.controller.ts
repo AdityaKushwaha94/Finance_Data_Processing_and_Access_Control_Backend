@@ -5,6 +5,7 @@ import { RecordType } from "../models/financial-record.model";
 interface ListRecordsQuery {
   type?: RecordType;
   category?: string;
+  search?: string;
   startDate?: Date;
   endDate?: Date;
   page: number;
@@ -34,6 +35,7 @@ export class FinancialRecordController {
       {
         type: query.type,
         category: query.category,
+        search: query.search,
         startDate: query.startDate,
         endDate: query.endDate
       },
@@ -75,6 +77,16 @@ export class FinancialRecordController {
     res.status(200).json({
       success: true,
       message: "Financial record deleted successfully"
+    });
+  };
+
+  public restoreRecord = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params as { id: string };
+    await this.recordService.restoreRecord(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Financial record restored successfully"
     });
   };
 }

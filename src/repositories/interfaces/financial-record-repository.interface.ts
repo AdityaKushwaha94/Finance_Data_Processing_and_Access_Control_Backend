@@ -6,6 +6,7 @@ import {
 export interface FinancialRecordFilters {
   type?: RecordType;
   category?: string;
+  search?: string;
   startDate?: Date;
   endDate?: Date;
 }
@@ -68,6 +69,7 @@ export interface IFinancialRecordRepository {
     }>
   ): Promise<FinancialRecordDocument | null>;
   deleteById(id: string): Promise<boolean>;
+  restoreById(id: string): Promise<boolean>;
   getSummary(filters: FinancialRecordFilters): Promise<DashboardSummary>;
   getCategoryTotals(filters: FinancialRecordFilters): Promise<CategoryTotal[]>;
   getMonthlyTrends(

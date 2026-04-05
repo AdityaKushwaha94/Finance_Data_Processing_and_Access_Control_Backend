@@ -11,6 +11,8 @@ export interface IFinancialRecord {
   date: Date;
   notes?: string;
   createdBy: Types.ObjectId;
+  isDeleted: boolean;
+  deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,6 +50,14 @@ const financialRecordSchema = new Schema<IFinancialRecord>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
+    deletedAt: {
+      type: Date,
+      default: undefined
     }
   },
   {
@@ -56,7 +66,7 @@ const financialRecordSchema = new Schema<IFinancialRecord>(
   }
 );
 
-financialRecordSchema.index({ date: -1, type: 1, category: 1 });
+financialRecordSchema.index({ isDeleted: 1, date: -1, type: 1, category: 1 });
 
 export const FinancialRecordModel = model<IFinancialRecord>(
   "FinancialRecord",
