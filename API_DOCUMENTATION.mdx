@@ -1,0 +1,718 @@
+# Finance Dashboard API Documentation
+
+This file provides complete endpoint-level documentation with dummy request and response examples.
+
+## Base URL
+
+`http://localhost:4000`
+
+## Authentication Model
+
+- Auth type: Bearer JWT
+- Header format:
+
+```http
+Authorization: Bearer <your_jwt_token>
+```
+
+## Role Matrix
+
+- `viewer`: can access dashboard overview only
+- `analyst`: can read records and dashboard overview
+- `admin`: full access to users, records, and dashboard
+
+---
+
+## 1) Health
+
+### GET /health
+
+- Access: Public
+- Purpose: Server health check
+
+#### Example Response (200)
+
+```json
+{
+  "success": true,
+  "message": "Finance dashboard backend is running"
+}
+```
+
+---
+
+## 2) Auth APIs
+
+### POST /api/auth/register
+
+- Access: Public
+- Purpose: Register a new user (default role = `viewer`)
+
+#### Request Body
+
+```json
+{
+  "name": "Aarav Verma",
+  "email": "aarav@example.com",
+  "password": "User@12345"
+}
+```
+
+#### Example Response (201)
+
+```json
+{
+  "success": true,
+  "message": "User registered successfully",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.sample",
+    "user": {
+      "id": "665f3b1f2a8e4c7d99f00111",
+      "name": "Aarav Verma",
+      "email": "aarav@example.com",
+      "role": "viewer",
+      "isActive": true,
+      "createdAt": "2026-04-05T10:00:00.000Z",
+      "updatedAt": "2026-04-05T10:00:00.000Z"
+    }
+  }
+}
+```
+
+#### Validation Error Example (400)
+
+```json
+{
+  "success": false,
+  "message": "Invalid request body",
+  "details": {
+    "formErrors": [],
+    "fieldErrors": {
+      "password": [
+        "Password must be at least 8 characters"
+      ]
+    }
+  }
+}
+```
+
+---
+
+### POST /api/auth/login
+
+- Access: Public
+- Purpose: Login and receive JWT
+
+#### Request Body
+
+```json
+{
+  "email": "admin@finance.local",
+  "password": "Admin@12345"
+}
+```
+
+#### Example Response (200)
+
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.sample",
+    "user": {
+      "id": "665f3b1f2a8e4c7d99f00001",
+      "name": "System Admin",
+      "email": "admin@finance.local",
+      "role": "admin",
+      "isActive": true,
+      "createdAt": "2026-04-05T09:00:00.000Z",
+      "updatedAt": "2026-04-05T09:00:00.000Z"
+    }
+  }
+}
+```
+
+#### Invalid Credentials Example (401)
+
+```json
+{
+  "success": false,
+  "message": "Invalid email or password"
+}
+```
+
+---
+
+### GET /api/auth/me
+
+- Access: Authenticated user (`viewer`, `analyst`, `admin`)
+- Purpose: Get current logged-in profile
+
+#### Required Headers
+
+```http
+Authorization: Bearer <jwt_token>
+```
+
+#### Example Response (200)
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "665f3b1f2a8e4c7d99f00111",
+    "name": "Aarav Verma",
+    "email": "aarav@example.com",
+    "role": "viewer",
+    "isActive": true,
+    "createdAt": "2026-04-05T10:00:00.000Z",
+    "updatedAt": "2026-04-05T10:00:00.000Z"
+  }
+}
+```
+
+#### Missing Token Example (401)
+
+```json
+{
+  "success": false,
+  "message": "Authorization token is missing"
+}
+```
+
+---
+
+## 3) User Management APIs (Admin only)
+
+> All endpoints below require an `admin` token.
+
+### POST /api/users
+
+- Access: `admin`
+- Purpose: Create a user with explicit role
+
+#### Required Headers
+
+```http
+Authorization: Bearer <admin_jwt_token>
+```
+
+#### Request Body
+
+```json
+{
+  "name": "Neha Analyst",
+  "email": "neha.analyst@example.com",
+  "password": "Analyst@12345",
+  "role": "analyst",
+  "isActive": true
+}
+```
+
+#### Example Response (201)
+
+```json
+{
+  "success": true,
+  "message": "User created successfully",
+  "data": {
+    "id": "665f3b1f2a8e4c7d99f00122",
+    "name": "Neha Analyst",
+    "email": "neha.analyst@example.com",
+    "role": "analyst",
+    "isActive": true,
+    "createdAt": "2026-04-05T11:00:00.000Z",
+    "updatedAt": "2026-04-05T11:00:00.000Z"
+  }
+}
+```
+
+---
+
+### GET /api/users
+
+- Access: `admin`
+- Purpose: List all users
+
+#### Example Response (200)
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "665f3b1f2a8e4c7d99f00001",
+      "name": "System Admin",
+      "email": "admin@finance.local",
+      "role": "admin",
+      "isActive": true,
+      "createdAt": "2026-04-05T09:00:00.000Z",
+      "updatedAt": "2026-04-05T09:00:00.000Z"
+    },
+    {
+      "id": "665f3b1f2a8e4c7d99f00122",
+      "name": "Neha Analyst",
+      "email": "neha.analyst@example.com",
+      "role": "analyst",
+      "isActive": true,
+      "createdAt": "2026-04-05T11:00:00.000Z",
+      "updatedAt": "2026-04-05T11:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### PATCH /api/users/:id/role
+
+- Access: `admin`
+- Purpose: Update role for a user
+
+#### Path Params
+
+- `id`: MongoDB ObjectId of user
+
+#### Request Body
+
+```json
+{
+  "role": "viewer"
+}
+```
+
+#### Example Response (200)
+
+```json
+{
+  "success": true,
+  "message": "User role updated successfully",
+  "data": {
+    "id": "665f3b1f2a8e4c7d99f00122",
+    "name": "Neha Analyst",
+    "email": "neha.analyst@example.com",
+    "role": "viewer",
+    "isActive": true,
+    "createdAt": "2026-04-05T11:00:00.000Z",
+    "updatedAt": "2026-04-05T11:05:00.000Z"
+  }
+}
+```
+
+#### Not Found Example (404)
+
+```json
+{
+  "success": false,
+  "message": "User not found"
+}
+```
+
+---
+
+### PATCH /api/users/:id/status
+
+- Access: `admin`
+- Purpose: Activate/deactivate user account
+
+#### Path Params
+
+- `id`: MongoDB ObjectId of user
+
+#### Request Body
+
+```json
+{
+  "isActive": false
+}
+```
+
+#### Example Response (200)
+
+```json
+{
+  "success": true,
+  "message": "User status updated successfully",
+  "data": {
+    "id": "665f3b1f2a8e4c7d99f00122",
+    "name": "Neha Analyst",
+    "email": "neha.analyst@example.com",
+    "role": "viewer",
+    "isActive": false,
+    "createdAt": "2026-04-05T11:00:00.000Z",
+    "updatedAt": "2026-04-05T11:10:00.000Z"
+  }
+}
+```
+
+---
+
+## 4) Financial Record APIs
+
+### POST /api/records
+
+- Access: `admin`
+- Purpose: Create a financial record
+
+#### Request Body
+
+```json
+{
+  "amount": 2500,
+  "type": "income",
+  "category": "Salary",
+  "date": "2026-04-01T00:00:00.000Z",
+  "notes": "April salary credited"
+}
+```
+
+#### Example Response (201)
+
+```json
+{
+  "success": true,
+  "message": "Financial record created successfully",
+  "data": {
+    "_id": "665f3b1f2a8e4c7d99f01001",
+    "amount": 2500,
+    "type": "income",
+    "category": "Salary",
+    "date": "2026-04-01T00:00:00.000Z",
+    "notes": "April salary credited",
+    "createdBy": "665f3b1f2a8e4c7d99f00001",
+    "createdAt": "2026-04-05T12:00:00.000Z",
+    "updatedAt": "2026-04-05T12:00:00.000Z"
+  }
+}
+```
+
+---
+
+### GET /api/records
+
+- Access: `analyst`, `admin`
+- Purpose: List records with filters and pagination
+
+#### Query Params
+
+- `type`: `income` or `expense`
+- `category`: string
+- `startDate`: ISO date
+- `endDate`: ISO date
+- `page`: integer >= 1 (default: 1)
+- `limit`: integer 1..100 (default: 10)
+
+#### Example Request
+
+`GET /api/records?type=expense&category=Food&startDate=2026-04-01&endDate=2026-04-30&page=1&limit=2`
+
+#### Example Response (200)
+
+```json
+{
+  "success": true,
+  "data": {
+    "data": [
+      {
+        "_id": "665f3b1f2a8e4c7d99f01022",
+        "amount": 35,
+        "type": "expense",
+        "category": "Food",
+        "date": "2026-04-04T00:00:00.000Z",
+        "notes": "Lunch",
+        "createdBy": "665f3b1f2a8e4c7d99f00001",
+        "createdAt": "2026-04-05T12:15:00.000Z",
+        "updatedAt": "2026-04-05T12:15:00.000Z"
+      },
+      {
+        "_id": "665f3b1f2a8e4c7d99f01021",
+        "amount": 20,
+        "type": "expense",
+        "category": "Food",
+        "date": "2026-04-03T00:00:00.000Z",
+        "notes": "Snacks",
+        "createdBy": "665f3b1f2a8e4c7d99f00001",
+        "createdAt": "2026-04-05T12:14:00.000Z",
+        "updatedAt": "2026-04-05T12:14:00.000Z"
+      }
+    ],
+    "total": 8,
+    "page": 1,
+    "limit": 2,
+    "totalPages": 4
+  }
+}
+```
+
+---
+
+### GET /api/records/:id
+
+- Access: `analyst`, `admin`
+- Purpose: Fetch one record by id
+
+#### Path Params
+
+- `id`: MongoDB ObjectId
+
+#### Example Response (200)
+
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "665f3b1f2a8e4c7d99f01001",
+    "amount": 2500,
+    "type": "income",
+    "category": "Salary",
+    "date": "2026-04-01T00:00:00.000Z",
+    "notes": "April salary credited",
+    "createdBy": "665f3b1f2a8e4c7d99f00001",
+    "createdAt": "2026-04-05T12:00:00.000Z",
+    "updatedAt": "2026-04-05T12:00:00.000Z"
+  }
+}
+```
+
+---
+
+### PATCH /api/records/:id
+
+- Access: `admin`
+- Purpose: Update one or more fields in a record
+
+#### Request Body (any subset, at least one field)
+
+```json
+{
+  "amount": 2600,
+  "notes": "Salary revised with bonus"
+}
+```
+
+#### Example Response (200)
+
+```json
+{
+  "success": true,
+  "message": "Financial record updated successfully",
+  "data": {
+    "_id": "665f3b1f2a8e4c7d99f01001",
+    "amount": 2600,
+    "type": "income",
+    "category": "Salary",
+    "date": "2026-04-01T00:00:00.000Z",
+    "notes": "Salary revised with bonus",
+    "createdBy": "665f3b1f2a8e4c7d99f00001",
+    "createdAt": "2026-04-05T12:00:00.000Z",
+    "updatedAt": "2026-04-05T12:20:00.000Z"
+  }
+}
+```
+
+---
+
+### DELETE /api/records/:id
+
+- Access: `admin`
+- Purpose: Delete a record
+
+#### Example Response (200)
+
+```json
+{
+  "success": true,
+  "message": "Financial record deleted successfully"
+}
+```
+
+#### Not Found Example (404)
+
+```json
+{
+  "success": false,
+  "message": "Financial record not found"
+}
+```
+
+---
+
+## 5) Dashboard API
+
+### GET /api/dashboard/overview
+
+- Access: `viewer`, `analyst`, `admin`
+- Purpose: Return dashboard-level analytics
+
+#### Query Params
+
+- `startDate`: ISO date (optional)
+- `endDate`: ISO date (optional)
+- `months`: integer 1..24, default `6`
+- `recentLimit`: integer 1..20, default `5`
+
+#### Example Request
+
+`GET /api/dashboard/overview?startDate=2026-01-01&endDate=2026-04-30&months=4&recentLimit=3`
+
+#### Example Response (200)
+
+```json
+{
+  "success": true,
+  "data": {
+    "summary": {
+      "totalIncome": 10200,
+      "totalExpenses": 3650,
+      "netBalance": 6550
+    },
+    "categoryTotals": [
+      {
+        "category": "Food",
+        "income": 0,
+        "expense": 540,
+        "net": -540
+      },
+      {
+        "category": "Freelance",
+        "income": 2200,
+        "expense": 0,
+        "net": 2200
+      },
+      {
+        "category": "Salary",
+        "income": 8000,
+        "expense": 0,
+        "net": 8000
+      },
+      {
+        "category": "Transport",
+        "income": 0,
+        "expense": 310,
+        "net": -310
+      }
+    ],
+    "trends": [
+      {
+        "period": "2026-01",
+        "income": 2500,
+        "expense": 900,
+        "net": 1600
+      },
+      {
+        "period": "2026-02",
+        "income": 2500,
+        "expense": 850,
+        "net": 1650
+      },
+      {
+        "period": "2026-03",
+        "income": 2600,
+        "expense": 920,
+        "net": 1680
+      },
+      {
+        "period": "2026-04",
+        "income": 2600,
+        "expense": 980,
+        "net": 1620
+      }
+    ],
+    "recentActivity": [
+      {
+        "_id": "665f3b1f2a8e4c7d99f01033",
+        "amount": 45,
+        "type": "expense",
+        "category": "Food",
+        "date": "2026-04-05T00:00:00.000Z",
+        "notes": "Dinner",
+        "createdBy": "665f3b1f2a8e4c7d99f00001",
+        "createdAt": "2026-04-05T12:40:00.000Z",
+        "updatedAt": "2026-04-05T12:40:00.000Z"
+      },
+      {
+        "_id": "665f3b1f2a8e4c7d99f01032",
+        "amount": 2600,
+        "type": "income",
+        "category": "Salary",
+        "date": "2026-04-01T00:00:00.000Z",
+        "notes": "April salary",
+        "createdBy": "665f3b1f2a8e4c7d99f00001",
+        "createdAt": "2026-04-05T12:30:00.000Z",
+        "updatedAt": "2026-04-05T12:30:00.000Z"
+      },
+      {
+        "_id": "665f3b1f2a8e4c7d99f01031",
+        "amount": 30,
+        "type": "expense",
+        "category": "Transport",
+        "date": "2026-03-31T00:00:00.000Z",
+        "notes": "Cab",
+        "createdBy": "665f3b1f2a8e4c7d99f00001",
+        "createdAt": "2026-04-05T12:25:00.000Z",
+        "updatedAt": "2026-04-05T12:25:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 6) Common Error Responses
+
+### Unauthorized (401)
+
+```json
+{
+  "success": false,
+  "message": "Invalid or expired authorization token"
+}
+```
+
+### Forbidden (403)
+
+```json
+{
+  "success": false,
+  "message": "Forbidden: you do not have access to this resource"
+}
+```
+
+### Route Not Found (404)
+
+```json
+{
+  "success": false,
+  "message": "Route not found: GET /api/unknown"
+}
+```
+
+### Invalid ObjectId (400)
+
+```json
+{
+  "success": false,
+  "message": "Invalid request params",
+  "details": {
+    "formErrors": [],
+    "fieldErrors": {
+      "id": [
+        "Invalid MongoDB ObjectId"
+      ]
+    }
+  }
+}
+```
+
+---
+
+## 7) Quick Postman Sequence (Suggested)
+
+1. `POST /api/auth/login` with default admin credentials from `.env`
+2. Use token in Authorization header
+3. `POST /api/users` to create analyst/viewer users
+4. `POST /api/records` to create income/expense entries
+5. `GET /api/records` with filters/pagination
+6. `GET /api/dashboard/overview` for analytics
