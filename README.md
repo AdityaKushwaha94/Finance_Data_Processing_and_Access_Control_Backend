@@ -77,17 +77,13 @@ npm install
 
 2. Create your local environment file:
 
-```bash
-cp .env.example .env
-```
+   ```
+   .env
+   (put all env here mostly 
 
-On Windows PowerShell:
+   ```
 
-```powershell
-Copy-Item .env.example .env
-```
-
-3. Start development server:
+4. Start development server:
 
 ```bash
 npm run dev
