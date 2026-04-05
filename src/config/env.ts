@@ -13,7 +13,7 @@ const envSchema = z.object({
   JWT_SECRET: z
     .string()
     .min(16)
-    .default("change-this-local-dev-secret"),
+    .default("from env file,  i am going to overwrite this in the production system if required"),
   JWT_EXPIRES_IN: z.string().default("1d"),
   SEED_ADMIN_EMAIL: z.string().email().default("admin@finance.local"),
   SEED_ADMIN_PASSWORD: z.string().min(8).default("Admin@12345")
