@@ -1,6 +1,6 @@
 # Finance Dashboard Backend
 
-A TypeScript + Node.js + Express + MongoDB backend for a finance dashboard system.
+A TypeScript + Node.js + Express + MongoDB backend design for a finance dashboard system.
 
 This project demonstrates:
 
