@@ -1,5 +1,13 @@
 # Finance Dashboard Backend
 
+<p>
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Express-000000?style=flat-square&logo=express&logoColor=white" alt="Express" />
+  <img src="https://img.shields.io/badge/MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/Zod-3E67B1?style=flat-square&logo=zod&logoColor=white" alt="Zod" />
+  <img src="https://img.shields.io/badge/JWT-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" alt="JWT" />
+</p>
+
 A TypeScript + Node.js + Express + MongoDB backend design for a finance dashboard system.
 
 This project demonstrates:
@@ -10,6 +18,8 @@ This project demonstrates:
 - Dashboard summary and analytics APIs
 - Validation and structured error handling
 - Layered architecture with SOLID-friendly separation
+
+Full endpoint reference: [API_DOCUMENTATION.mdx](API_DOCUMENTATION.mdx)
 
 ## Tech Stack
 
